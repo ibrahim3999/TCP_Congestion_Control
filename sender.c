@@ -24,12 +24,12 @@ void ReaderFile()
 }
 void main()
 {
-    int senderSokcet;
+    int senderSocket;
     struct sockaddr_in receivaddr,cli;
     ReaderFile();
 
-    senderSokcet=sokcket(AF_INET,SOCK_STREAM,0);
-    if(senderSokcet ==-1)
+    senderSocket=socket(AF_INET,SOCK_STREAM,0);
+    if(senderSocket ==-1)
     {
         printf("socket creation failed !!!\n");
         exit(0);
@@ -43,7 +43,7 @@ void main()
     receivaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
     receivaddr.sin_port=htons(PORT);
     
-    if(connect (senderSokcet,(struct sockaddr*)&receivaddr,sizeof(receivaddr))!=0)
+    if(connect (senderSocket,(struct sockaddr*)&receivaddr,sizeof(receivaddr))!=0)
     {
         printf("connection with the receiver failed ...!!!\n");
 
@@ -52,6 +52,6 @@ void main()
     {
         printf("connected to the receiver .. \n");
     }
-    
-    close(senderSokcet);
+
+    close(senderSocket);
 }
