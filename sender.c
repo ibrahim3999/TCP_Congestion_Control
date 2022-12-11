@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#define PORT 9999
 
 void ReaderFile()
 {
@@ -21,7 +24,34 @@ void ReaderFile()
 }
 void main()
 {
+    int senderSokcet;
+    struct sockaddr_in receivaddr,cli;
     ReaderFile();
 
+    senderSokcet=sokcket(AF_INET,SOCK_STREAM,0);
+    if(senderSokcet ==-1)
+    {
+        printf("socket creation failed !!!\n");
+        exit(0);
+    }
+    else{
+        printf("socket succesfuly created!! \n ");
+    }
+    bzero(&receivaddr,sizeof(receivaddr));
 
+    receivaddr.sin_family=AF_INET;
+    receivaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+    receivaddr.sin_port=htons(PORT);
+    
+    if(connect (senderSokcet,(struct sockaddr*)&receivaddr,sizeof(receivaddr))!=0)
+    {
+        printf("connection with the receiver failed ...!!!\n");
+
+    }
+    else
+    {
+        printf("connected to the receiver .. \n");
+    }
+    
+    close(senderSokcet);
 }
