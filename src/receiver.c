@@ -8,7 +8,7 @@ void main()
 {
     int sockrec ,connrec,len;
     struct sockaddr_in recaddr,cli;
-
+    
     sockrec=socket(AF_INET,SOCK_STREAM,0);
     if(sockrec==-1)
     {
@@ -41,14 +41,11 @@ void main()
 
     len=sizeof(cli);
 
-    connrec=accpet(sockrec,(struct sockaddr*)&cli,&len);
+    connrec=accept(sockrec,(struct sockaddr*)&cli,&len);
     if(connrec<0)
     {
         printf("Receiver accept failed ...\n");
         exit(0);
     }
-    else
-        printf("Receiver accept the Sender ... \n ");
-
-
+    printf("Receiver accept the Sender ... \n ");   
 }
