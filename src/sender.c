@@ -14,9 +14,6 @@
 #include <sys/socket.h>
 
 
-
-
-
 #define SERVER_PORT 5566
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define SIZE 1048576
