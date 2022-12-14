@@ -16,8 +16,8 @@
 
 #define SERVER_PORT 5566
 #define SERVER_IP_ADDRESS "127.0.0.1"
-#define SIZE 1048576
-#define HALF_SIZE 524288
+#define SIZE 1067369
+#define HALF_SIZE 533684
 #define AUTH_SIZE 21
 #define FIlE_NAME "f2.txt"
 // 313357196, 207101734
