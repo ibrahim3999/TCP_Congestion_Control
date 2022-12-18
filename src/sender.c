@@ -14,13 +14,16 @@
 #include <sys/socket.h>
 
 
-#define SERVER_PORT 5566
-#define SERVER_IP_ADDRESS "127.0.0.1"
-#define SIZE 1067369
-#define HALF_SIZE 533684
+
+
 #define AUTH_SIZE 21
 #define FIlE_NAME "f2.txt"
-// 313357196, 207101734
+#define SERVER_PORT 5566
+#define SERVER_IP_ADDRESS "127.0.0.1"
+#define SIZE 1048576  
+#define HALF_SIZE 524288
+
+// ID AUTHORS: 313357196, 207101734
 
 #define XOR "0001 1010 1101 1010"
 #define SA struct sockaddr
@@ -30,25 +33,24 @@ int main() {
     //allocate memory for authentication and parts of content's file
     char buffer[HALF_SIZE];
     char buffercheck[AUTH_SIZE];
-    //output of xor - authentication
+    //authentication
     strcpy(buffercheck,"0101 0001 1100 0000");
 
     int size = 0;
-    int size2=0;
+    int send_size=0;
     char exitmessage[1];
     
     FILE *file_pointer;
     socklen_t length;
     int count_us=0;
     char namealgo[250];
-    int flag=1;
-
+    
     struct timeval start1,end1;
 
     int client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(client_socket == -1) {
-        fprintf(stderr, "Socket ERROR - could not create the socket : %s\n", strerror(errno));
-        exit(EXIT_FAILURE); 
+        perror("[-]Error created socket");
+        exit(1); 
     }
     else printf("[+]TCP protocol socket created.\n");
 
@@ -66,18 +68,17 @@ int main() {
     // Connect to the receiver
     int connection = connect(client_socket, (struct sockaddr *) &server_address, sizeof(server_address));
     if(connection == -1) {
-        fprintf(stderr, "The connecting to receiver failed - error msg code:%s\n", strerror(errno));
-        exit(EXIT_FAILURE); 
+        perror("[-]The connecting to receiver failed\n");
+        exit(1); 
     }
-    else {
-        printf("[+]Sender connected to the Receiver successfully!!\n");
-    }
-
     
+    printf("[+]Sender connected to the Receiver successfully!!\n");
 
-    while(flag) {
+    char flag='m';
 
-        int j = 0;
+    while(flag!='e') {
+
+        
         count_us++;
         
         if (count_us>1)
@@ -95,108 +96,88 @@ int main() {
                 perror("getsockopt");
                 exit(EXIT_FAILURE);
             }
-
+            //open my file
             file_pointer = fopen(FIlE_NAME, "r");
             if(file_pointer == NULL) {
                 fprintf(stderr, "Failed open the file f1.txt : %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
 
-                //sending the part 1 of the content while FILE OPEN
+                //part one sending
                 printf("[+]send the first part of the file\n");
 
                 fread(buffer,1, sizeof(buffer),file_pointer);
                 size = send(client_socket, buffer, sizeof(buffer), 0);
                 if(size<0){
-                    printf("ERROR - Send the half 1 of f1.txt-> failed with error!\n");
+                    perror("[+]ERROR - Send the half 1 of f1.txt-> failed with error!\n");
                     exit(1);
                 }
-                
-            //the size of half file!
-            printf("%d of content sent!\n",size);
-            size2+=size;
+            // Half size 
+
+            send_size+=size;
 
         if (size==HALF_SIZE) {
             printf("\n");
             int x=recv(client_socket, &buffercheck, sizeof(buffercheck), 0);
-            
-            
-            
-        
-            if (strcmp(XOR, buffercheck) == 0) {
 
-                printf("Authentication success!!\n");
-
-            }
+            if (strcmp(XOR, buffercheck) == 0) {printf("[+]Authentication success!!\n");}
 
         }
-            //changing the CC Algorithem by setsockopt
+            //Change algorithm 
             printf("[+]Change the cc algorithm to reno\n");
             strcpy(namealgo, "reno");
             length = sizeof(namealgo);
             int set_sock_opt = setsockopt(client_socket, IPPROTO_TCP, TCP_CONGESTION, namealgo, length);
             if (set_sock_opt != 0) {
                 perror("setsockopt");
-                exit(EXIT_FAILURE);
+                exit(1);
             }
 
             
 
-
+            //sending the next half file to receiver
             bzero(buffer, sizeof(buffer));
-            printf("\n [+]Send the second part of the file\n\n");
+            printf("\n[+]Send the second part of the file\n\n");
             size = 0;
             fread(buffer, 1, sizeof(buffer), file_pointer);
             size = send(client_socket, buffer, sizeof(buffer), 0);
             if (size < 0) {
-                printf("Send part2 failed with error!\n");
+                printf("[-]Falied sender second PART !!\n");
                 exit(1);
             }
 
 
-            size2 += size;
-            printf("%d of content sent!\n", size);
-            if (size2 == SIZE) {
-                printf("sent all the 2MB file: %d\n", size2);
+            send_size += size;
+            if (send_size == SIZE) {
+                printf("[+]sent all the 2MB file: %d\n", send_size);
                 fclose(file_pointer);
-                printf("User Decision:\n ");
-                printf("Insert on 1 to send file again OR 0 to exit the program!\n");
-                int flag2;
-                scanf("%d", &flag2);
+                printf("\nUser Decision:\n");
+                printf("Press Any char to send file again OR 'e' to exit the program!\n");
+                char flag2;
+                scanf("%c", &flag2);
                 flag = flag2;
 
-                printf("*****\n");
+                printf("\n\n");
 
+                if (flag2 == 'e') {
 
-                if (flag2 == 0) {
-
-                    exitmessage[0] = '0';
-                    printf("\nSender send the exit message for the receiver!!\n");
+                    exitmessage[0] = 'e';
+                    printf("\n The client EXIT !!\n");
                 }
-                else{
-                        exitmessage[0] = '1';
-
-                }
-
-
+                int x= send(client_socket, exitmessage, sizeof(exitmessage), 0);
                     
-                    int x= send(client_socket, exitmessage, sizeof(exitmessage), 0);
-                    printf("%d\n",x);
-                    //fclose(file_pointer);
+                
 
 
             } else {
-                printf("sent just %d out of %d\n", size2, SIZE);
+                printf("sent just %d out of %d\n", send_size, SIZE);
 
             }
 
-
-
-            j++;
             size = 0;
-            size2 = 0;
+            send_size = 0;
     }
     close(client_socket);
+    return 1;
 
-    return 0;
 }
